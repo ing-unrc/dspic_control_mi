@@ -1,4 +1,4 @@
-#define S_FUNCTION_NAME  control_MI_dspic_5
+#define S_FUNCTION_NAME  control_MI_dspic_main
 #define S_FUNCTION_LEVEL 2
 
 #define SVPWM 1
