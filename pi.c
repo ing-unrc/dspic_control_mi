@@ -32,10 +32,10 @@ void CalcPI( tPIParm *pParm)
     currentError = pParm->qInRef - pParm->qInMeas;
     
     
-        if(currentError > 255)
+    if(currentError > 255)
         currentError = 255;
-    
-     if(currentError < -255)
+
+    if(currentError < -255)
         currentError = -255;
     
     

@@ -415,7 +415,7 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 
             tita_estimado =( EstimParm.qRho);
             //tita_estimado =   tita_real;
-            tita_estimado = u[7]*10430;
+            //tita_estimado = u[7]*10430;
 
             //tita_estimado = 0;
    
@@ -490,9 +490,9 @@ static void mdlInitializeSampleTimes(SimStruct *S)
             
             CalcPI(&PIParmQ);
             
-
-            ParkParm.qVq = PIParmQ.qOut;
-            ParkParm.qVd = PIParmD.qOut;
+            // BORRAR!
+            ParkParm.qVq = 5000; //PIParmQ.qOut;
+            ParkParm.qVd = 0; //PIParmD.qOut;
 
             //transformada inversa de Park
 
@@ -694,7 +694,7 @@ static void mdlInitializeSampleTimes(SimStruct *S)
   }
   
   
-#define PWM 3500  
+#define PWM 35000  
 void CalcTimes(void)
 {
     T1 = (T1*PWM)/65536 ;
@@ -702,7 +702,7 @@ void CalcTimes(void)
     Tc = (PWM-T1-T2)/2;
     Tb = Tc + T1;
     Ta = Tb + T2;
-}    
+}     
   
 #endif /* MDL_UPDATE */
 
@@ -752,8 +752,8 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     y[12]= (float)ParkParm.qVq;
     y[13]= (float)ParkParm.qVd;
 
-    y[14]=(float)PIParmQ.qInRef-PIParmQ.qInMeas;    //errores 
-    y[15]=(float) PIParmD.qInRef-PIParmD.qInMeas;
+    y[14]=(float)PIParmQ.qInRef - PIParmQ.qInMeas;    //errores 
+    y[15]=(float)PIParmD.qInRef - PIParmD.qInMeas;
 
 
     y[16]=((float)(tita_real))/10430;    // 10430 = 65536/ (2*pi)
