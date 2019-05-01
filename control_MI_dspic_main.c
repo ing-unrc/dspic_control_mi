@@ -454,11 +454,11 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 
                if(rampa_id < ref_id)
                {
-                   rampa_id+=1;
+                   rampa_id+=2;
                }
                if(rampa_id > ref_id)
                {
-                   rampa_id-=1;
+                   rampa_id-=2;
                }               
             }
             
@@ -490,9 +490,8 @@ static void mdlInitializeSampleTimes(SimStruct *S)
             
             CalcPI(&PIParmQ);
             
-            // BORRAR!
-            ParkParm.qVq = 5000; //PIParmQ.qOut;
-            ParkParm.qVd = 0; //PIParmD.qOut;
+            ParkParm.qVq = PIParmQ.qOut;
+            ParkParm.qVd = PIParmD.qOut;
 
             //transformada inversa de Park
 

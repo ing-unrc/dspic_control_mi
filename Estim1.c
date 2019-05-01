@@ -258,7 +258,7 @@ void Estim(void)
         {
             if (modo_acel == 0)
             {
-                if (EstimParm.qEsAbs < 5000)  //EstimParm.qEsAbs < 1000
+                if (EstimParm.qEsAbs < 100)  //EstimParm.qEsAbs < 1000
                 {
                     PIEst_rho.qdSum = ( (((int32_t)EstimParm.qOmegaMr) << 15) + (((int32_t)EstimParm.qEsdf	 * (int32_t)PIEst_rho.qKp)<<4)  );
                     EstimParm.qOmegaMr = 250;
