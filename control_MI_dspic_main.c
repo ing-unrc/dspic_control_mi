@@ -415,7 +415,7 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 
             tita_estimado =( EstimParm.qRho);
             //tita_estimado =   tita_real;
-            //tita_estimado = u[7]*10430;
+            tita_estimado = u[7]*10430;
 
             //tita_estimado = 0;
    
