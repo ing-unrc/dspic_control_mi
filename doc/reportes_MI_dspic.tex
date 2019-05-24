@@ -23,6 +23,8 @@
 \usepackage{amsmath} % Required for some math elements 
 
 
+\usepackage{listings}
+
 % Ajuste de separación parrafos
 \setlength{\parindent}{0em} % Sangría
 \setlength{\parskip}{1em}   % Espaciado
@@ -136,13 +138,65 @@
 				\item Por lo general no se pueden eliminar las oscilaciones y conseguir que funcione aceptablemente durante el frenado. 
 			\end{itemize}
 	
+	
+	\section{Estimación de flujo con PLL\_PIC}
+	
+	
+		\subsection{Reporte 1}
+			\begin{description}
+				\item[Fecha]  07/05/2019 
+				\item[Tema] Análisis de señales luego de mejora de formas de onda de la tensión.
+			\end{description}
+		
+			Se observa:
+			\begin{itemize}
+				\item Los valores de fem tienen mucho menos ruido, se logra obtener par máximo hasta velocidades menores.
+				\item Con la configuración actual no se logra arrancar en pendiente con el modelo de VEU.
+			\end{itemize}
+	
+	\section{Estimación de flujo con PLL\_BIER}
+	
+		
+		\subsection{Reporte 1}
+		\begin{description}
+			\item[Fecha]  08/05/2019 
+			\item[Tema] Tratando de lograr el correcto funcionamiento
+		\end{description}
+	
+	
+		El signo de las corrientes obtenidas en $qd$ no coincide con el del modelo usado en el PIC. Ambas corrientes se tuvieron que usar con signo contrario, ver Fig.~\ref{fig:esquemapaper} y Código~\ref{cod:funcion}.
+		
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.7\linewidth]{figuras/0508_esquema_paper}
+			\caption{Esquema propuesto en el paper}
+			\label{fig:esquemapaper}
+		\end{figure}
+		
+		\begin{lstlisting}[language=MATLAB,caption={Contenido de función de MATLAB},label=cod:funcion,]
+Vd = Valpha * cos(tita) + Vbeta  * sin(tita);
+Vq = Vbeta  * cos(tita) - Valpha * sin(tita);
+          
+error = (  Vd - omega_est*sigma*Ls*i_q_ref + Rs*i_d_ref );
+error = -( (omega_est<0)*2 -1)* error ;		
+		\end{lstlisting}
+  		
+  		
+  		\subsection{Reporte 2}
+  		\begin{description}
+  			\item[Fecha]  08/05/2019 
+  			\item[Tema] Ajuste de PI
+  		\end{description}
+		
+		Prueba con I y sin I en el PI.
+		
 	%----------------------------------------------------------------------------------------
 	%	BIBLIOGRAPHY
 	%----------------------------------------------------------------------------------------
 	
 	\bibliographystyle{apalike}
 	
-	\bibliography{sample}
+	\bibliography{reposrtes_MI_dspic}
 	
 	%----------------------------------------------------------------------------------------
 	

@@ -1,5 +1,5 @@
 
-//version 2: 2019/02/05. Se ingresa con una Ed constante para el arranque, de forma de enganchar al PLL a una baja frecuencia 
+//version 5: 2019/02/05. Se ingresa con una Ed constante para el arranque, de forma de enganchar al PLL a una baja frecuencia 
 
 #include "Estim.h"
 #include "EstimDef.h"
@@ -254,15 +254,14 @@ void Estim(void)
         CalcPI_ang(&PIEst_rho);
     
     
-        if (ref_iq > 0 )
-        {
+       // if (ref_iq > 0 )
+       // {
             if (modo_acel == 0)
             {
-                if (EstimParm.qEsAbs < 100)  //EstimParm.qEsAbs < 1000
+                if (EstimParm.qEsAbs < 1000)  //EstimParm.qEsAbs < 1000
                 {
                     PIEst_rho.qdSum = ( (((int32_t)EstimParm.qOmegaMr) << 15) + (((int32_t)EstimParm.qEsdf	 * (int32_t)PIEst_rho.qKp)<<4)  );
                     EstimParm.qOmegaMr = 250;
-                    
                     
                     
                     modo_acel = 0;
@@ -272,7 +271,7 @@ void Estim(void)
             }
             else
             {
-                if (EstimParm.qEsAbs > 2)
+                if (EstimParm.qEsAbs > 100)
                 {
                     //if (EstimParm.qEsqf > 0)
                     //    temp_int = (int)(EstimParm.qEsAbs- EstimParm.qEsdf);
@@ -286,21 +285,38 @@ void Estim(void)
                     EstimParm.qOmegaMr = PIEst_rho.qOut + ((EstimParm.qEsAbsf*5570)*0>>15) ;// + (EstimParm.qEsqf*MotorEstimParm.qInvPsi)>>15;//*signo;
                     modo_acel = 1;
                 }
-                else
-                    modo_acel = 0;
+                //else
+                    //modo_acel = 0;
             } 
-        }
-        else
-        {
-           //if (EstimParm.qEsAbs < 300)
-           //{
-           //    PIEst_rho.qdSum = ( (((int32_t)EstimParm.qOmegaMr) << 15) + (((int32_t)EstimParm.qEsdf	 * (int32_t)PIEst_rho.qKp)<<4)  );
-           //    EstimParm.qOmegaMr = 0;
-           //}
-           //else
-                EstimParm.qOmegaMr = PIEst_rho.qOut + ((EstimParm.qEsAbsf*Q15(0.54))*0>>15);//*signo;
+        //}
+        //else
+        //{
+        /*
+            if (modo_acel == -1)
+            {
+                if (EstimParm.qEsAbs > 100)
+                {
+                    EstimParm.qOmegaMr = PIEst_rho.qOut + ((EstimParm.qEsAbsf*Q15(0.54))*0>>15);//*signo;
+                    modo_acel = -1;
+                }
+                else  
+                    modo_acel = 0;
+            }
+            else
+            {
+                if (EstimParm.qEsAbs < 400)
+                {
+                     PIEst_rho.qdSum = ( (((int32_t)EstimParm.qOmegaMr) << 15) + (((int32_t)EstimParm.qEsdf	 * (int32_t)PIEst_rho.qKp)<<4)  );
+                     EstimParm.qOmegaMr = 250;
+                     modo_acel = 0;
+                }
+                else
+                    modo_acel = -1;
+                
+            }
 
-        }           
+        } 
+         ran*/          
         
         //modificaci�n versi�n 2
         /*

@@ -48,8 +48,8 @@ volatile short int Van_ref,Vbn_ref,Vcn_ref,rampa_iq=0,rampa_id=0,cont_rampa,ref_
 
 static short int  Valfa1,Vbeta1,Valfa_fa,Vbeta_fa;
 
- short int  etapa_arranque;
-
+short int etapa_arranque;
+short int tita_estimado_smo=0;
 
 //static float Vref1,Vref2, Vref3;
 static  int Vr1,Vr2, Vr3,Vr1_aux,Vr2_aux, Vr3_aux;
@@ -412,10 +412,25 @@ static void mdlInitializeSampleTimes(SimStruct *S)
             
             //EstimParm.qRho = tita_real; //// BORRAR
             Estim();    
-
+            
+            tita_estimado_smo = u[7]*10430;
+            
+            
+            /*
+            if (modo_acel != 0)
+            {
+                tita_estimado = ( EstimParm.qRho);
+            }
+            else
+            {
+                tita_estimado =  tita_estimado_smo;
+                EstimParm.qRhoStateVar = tita_estimado_smo<<15;
+            }
+            */
+            // Para forzar valores
             tita_estimado =( EstimParm.qRho);
             //tita_estimado =   tita_real;
-            //tita_estimado = u[7]*10430;
+            //tita_estimado =  tita_estimado_smo;
 
             //tita_estimado = 0;
    
