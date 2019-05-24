@@ -2,6 +2,7 @@
 
 Tsc = 0.000054;
 Ts = 1e-6;
+decima = 10;
 
 param_MI_LV
 param_veu

@@ -414,8 +414,9 @@ static void mdlInitializeSampleTimes(SimStruct *S)
             Estim();    
             
             tita_estimado_smo = u[7]*10430;
-            tita_estimado =( EstimParm.qRho);
             
+            
+            /*
             if (modo_acel != 0)
             {
                 tita_estimado = ( EstimParm.qRho);
@@ -425,8 +426,11 @@ static void mdlInitializeSampleTimes(SimStruct *S)
                 tita_estimado =  tita_estimado_smo;
                 EstimParm.qRhoStateVar = tita_estimado_smo<<15;
             }
+            */
+            // Para forzar valores
+            tita_estimado =( EstimParm.qRho);
             //tita_estimado =   tita_real;
-            
+            //tita_estimado =  tita_estimado_smo;
 
             //tita_estimado = 0;
    

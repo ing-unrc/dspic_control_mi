@@ -1,5 +1,5 @@
 
-//version 2: 2019/02/05. Se ingresa con una Ed constante para el arranque, de forma de enganchar al PLL a una baja frecuencia 
+//version 5: 2019/02/05. Se ingresa con una Ed constante para el arranque, de forma de enganchar al PLL a una baja frecuencia 
 
 #include "Estim.h"
 #include "EstimDef.h"
@@ -285,8 +285,8 @@ void Estim(void)
                     EstimParm.qOmegaMr = PIEst_rho.qOut + ((EstimParm.qEsAbsf*5570)*0>>15) ;// + (EstimParm.qEsqf*MotorEstimParm.qInvPsi)>>15;//*signo;
                     modo_acel = 1;
                 }
-                else
-                    modo_acel = 0;
+                //else
+                    //modo_acel = 0;
             } 
         //}
         //else
@@ -316,7 +316,7 @@ void Estim(void)
             }
 
         } 
-         */          
+         ran*/          
         
         //modificaci�n versi�n 2
         /*
