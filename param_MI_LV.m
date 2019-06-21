@@ -2,8 +2,8 @@
 %  Proyecto: Tolerancia a fallas en sensores de un AE
 %  Facundo Aguilera
 %--------------------------------------------------------------------------
-%  Máquina de 4 kw
-%  Llamar al script para usar el modelo
+%  Máquina de 750 W
+%  2019
 %--------------------------------------------------------------------------
 
 %% Parámetros de la MI (MATLAB) 

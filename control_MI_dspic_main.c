@@ -1,3 +1,4 @@
+
 #define S_FUNCTION_NAME  control_MI_dspic_main
 #define S_FUNCTION_LEVEL 2
 
@@ -35,6 +36,7 @@ tPIParm     PIParmQ;        /* parms for PI controlers */
 tPIParm     PIParmD;        /* parms for PI controlers */
 
 tPIParm     PIEst_rho;        //PI estimador
+tPIParm     PIFreno;          //PI estimador
 
 tSincosParm   SincosParm;
 
@@ -318,7 +320,7 @@ static void mdlInitializeSampleTimes(SimStruct *S)
                 
             }
             else if(etapa_arranque == 1)          //se genera un ?ngulo para enganchar al PLL y arrancar al motor
-             {
+            {
                  
                  cont_arranque++;
                  
@@ -357,33 +359,33 @@ static void mdlInitializeSampleTimes(SimStruct *S)
              
         
             
-               
-          //  delta_angulo = ParkParm.qAngle - tita_estimado;
-          
-         
+
+            //  delta_angulo = ParkParm.qAngle - tita_estimado;
+
+
             ParkParm.qCos = (short)(cos(  ((float)ParkParm.qAngle)/10430  ) * 32767);
             ParkParm.qSin = (short)(sin(  ((float)ParkParm.qAngle)/10430  ) * 32767);
-       //     SincosParm.qAngle = ParkParm.qAngle;
-            
-            
-         //   qSin
+            //     SincosParm.qAngle = ParkParm.qAngle;
+
+
+            //   qSin
             
             
     
+
+                                //Transformada de clarke 
+            //-----------------------------------------------------
+
+
+            //Ialpha = Ia
+            //Ibeta  = Ia*dOneBySq3 + 2*Ib*dOneBySq3;
+
+            ParkParm.qIalpha = Van_ref;
+
+            aux_32bits = (int)Van_ref * (int)9459 + 2 *(int)Vbn_ref * (int)9459;
+            ParkParm.qIbeta = ( short )(aux_32bits >>14);
+
             
-                                  //Transformada de clarke 
-                //-----------------------------------------------------
-                
-          
-                //Ialpha = Ia
-                //Ibeta  = Ia*dOneBySq3 + 2*Ib*dOneBySq3;
-                
-                ParkParm.qIalpha = Van_ref;
-                
-                aux_32bits = (int)Van_ref * (int)9459 + 2 *(int)Vbn_ref * (int)9459;
-                ParkParm.qIbeta = ( short )(aux_32bits >>14);
-                
-               
             //transformada de Park
           
             //Id =  Ialpha*cos(Angle) + Ibeta*sin(Angle)
@@ -451,18 +453,36 @@ static void mdlInitializeSampleTimes(SimStruct *S)
                 //ref_iq= ref_iq; //me.pote_acel;
             }
             
-  
+            /////////////////////////////////
+            // FRENO/ACEL   PIEst_rho.qdSum
+            PIFreno.qInRef      = 0; 
+            PIFreno.qInMeas     = EstimParm.qEsAbs; 
+            PIFreno.qOutMax     = ref_iq;
+            PIFreno.qOutMin     = -PIFreno.qOutMax;
+            
+            
+            // Faltan condiciones para marcha atras
+            if (ref_iq >= 0)  // Aceleración
+            {
+                PIFreno.qdSum = 0;
+                PIFreno.qOut = ref_iq;
+            }
+            else
+            {
+                CalcPI(&PIFreno);
+            }
+            
             
             cont_rampa++;
             if(cont_rampa == 1)
             {
                 cont_rampa = 0;
                 
-                if(rampa_iq < ref_iq)
+               if(rampa_iq < PIFreno.qOut)
                {
                    rampa_iq+=3;
-               }
-               if(rampa_iq > ref_iq)
+               }               
+               if(rampa_iq > PIFreno.qOut)
                {
                    rampa_iq-=3;
                }
@@ -490,7 +510,7 @@ static void mdlInitializeSampleTimes(SimStruct *S)
 
 
 
-            //    aux_32bits = (int)(((int)PIParmD.qOut * (int)PIParmD.qOut)>>15);
+            //  aux_32bits = (int)(((int)PIParmD.qOut * (int)PIParmD.qOut)>>15);
 
             //  aux_32bits = (int)(MOD_VECTOR) - aux_32bits;
 
@@ -883,7 +903,18 @@ static void mdlTerminate(SimStruct *S)
     PIEst_rho.qOutMax = EST_OUTMAX;
     PIEst_rho.qOutMin = -PIEst_rho.qOutMax;
 
-    InitPI(&PIEst_rho);    
+    InitPI(&PIEst_rho); 
+    
+    
+    // ============= PI Freno
+    
+    PIFreno.qKp = FRENO_PTERM;    
+    PIFreno.qKi = FRENO_ITERM;
+    PIFreno.qKc = FRENO_CTERM;
+    PIFreno.qOutMax = FRENO_OUTMAX;
+    PIFreno.qOutMin = -PIEst_rho.qOutMax;
+
+    InitPI(&PIFreno); 
     
     //PI de velocidad
 /*

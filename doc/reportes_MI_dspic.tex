@@ -25,6 +25,8 @@
 
 \usepackage{listings}
 
+\usepackage{hyperref}
+
 % Ajuste de separación parrafos
 \setlength{\parindent}{0em} % Sangría
 \setlength{\parskip}{1em}   % Espaciado
@@ -189,6 +191,403 @@ error = -( (omega_est<0)*2 -1)* error ;
   		\end{description}
 		
 		Prueba con I y sin I en el PI.
+		
+		
+		
+    \section{Estimación de flujo con PLL\_PIC}
+		
+		
+		\subsection{Reporte 1}
+		\begin{description}
+			\item[Fecha]  07/05/2019 
+			\item[Tema] Análisis de señales luego de mejora de formas de onda de la tensión.
+		\end{description}
+		
+		Se observa:
+		\begin{itemize}
+			\item Los valores de fem tienen mucho menos ruido, se logra obtener par máximo hasta velocidades menores.
+			\item Con la configuración actual no se logra arrancar en pendiente con el modelo de VEU.
+		\end{itemize}
+		
+	\section{Cuantificación observador Zaki}
+		
+        
+        \subsection{Reporte: Cuantifiación en MATLAB}
+        \begin{description}
+        	\item[Fecha]  04/06/2019 
+        \end{description}
+		
+        En implementaciones de TI, usan bastante la
+        %\href{http://www.latex-project.org/}{latex project}
+        \href{https://en.wikipedia.org/wiki/Trapezoidal_rule_(differential_equations)}{regla Trapezoidal} (aparte de Euler) para hacer la discretización. Por esto, se arman las etapas para habilitar la posibilidad de implementarlo con trapezoidal o Euler.
+
+        Analizando nuevamente la implementación trapezoidal, se observa que es un método implícito, lo que requiere resolver muchas cosas en cada paso de integración. Se deja la posibilidad entonces de implementar un método Heun o similar explícito, aunque Euler en principio está funcionando.
+        
+        \subsubsection{Tiempo continuo}
+
+            Ecuaciones en tiempo continuo:
+            \begin{align*}
+               \dot{\hat{\lambda}}_\alpha &=  \frac{L_M}{T_r} \hat{i}_\alpha 
+                    - \frac{1}{T_r} \hat{\lambda}_\alpha  
+                    - \hat{\omega} \hat{\lambda}_\beta 
+                    + k_1\nu_\alpha + k_2\nu_\beta  \\
+                \dot{\hat{\lambda}}_\beta &=  \frac{L_M}{T_r} \hat{i}_\beta 
+                    - \frac{1}{T_r} \hat{\lambda}_\beta  
+                    + \hat{\omega} \hat{\lambda}_\alpha 
+                    - k_2\nu_\alpha + k_1\nu_\beta  \\
+                \dot{\hat{i}}_\beta &=  -a \hat{i}_\beta 
+                    + \frac{L_M}{b T_r} \hat{\lambda}_\beta  
+                    - \frac{L_M}{b} \hat{\omega} \hat{\lambda}_\alpha 
+                    + \frac{L_r}{b} v_\beta 
+                    - \nu_\beta \\
+                \dot{\hat{i}}_\alpha &=  -a \hat{i}_\alpha 
+                    + \frac{L_M}{b T_r} \hat{\lambda}_\alpha  
+                    + \frac{L_M}{b} \hat{\omega} \hat{\lambda}_\beta 
+                    + \frac{L_r}{b} v_\alpha
+                    - \nu_\alpha \\
+                \dot{\hat{\omega}} &=  -\gamma \left( l_\alpha \hat{\lambda}_\beta 
+                    - l_\beta \hat{\lambda}_\alpha  \right)
+            \end{align*}
+        
+
+
+        \subsubsection{Tiempo discreto}
+            En tiempo discreto, se define
+            
+            \begin{align*}
+                f_{\lambda\alpha} &=  \frac{L_M}{T_r} \hat{i}_\alpha 
+                    - \frac{1}{T_r} \hat{\lambda}_\alpha  
+                    - \hat{\omega} \hat{\lambda}_\beta 
+                    + k_1\nu_\alpha + k_2\nu_\beta  \\
+                f_{\lambda\beta} &=  \frac{L_M}{T_r} \hat{i}_\beta 
+                    - \frac{1}{T_r} \hat{\lambda}_\beta  
+                    + \hat{\omega} \hat{\lambda}_\alpha 
+                    - k_2\nu_\alpha + k_1\nu_\beta  \\
+                f_{i\beta} &=  -a \hat{i}_\beta 
+                    + \frac{L_M}{b T_r} \hat{\lambda}_\beta  
+                    - \frac{L_M}{b} \hat{\omega} \hat{\lambda}_\alpha 
+                    + \frac{L_r}{b} v_\beta 
+                    - \nu_\beta \\
+                f_{i\alpha} &=  -a \hat{i}_\alpha 
+                    + \frac{L_M}{b T_r} \hat{\lambda}_\alpha  
+                    + \frac{L_M}{b} \hat{\omega} \hat{\lambda}_\beta 
+                    + \frac{L_r}{b} v_\alpha
+                    - \nu_\alpha \\
+                f_\omega &=  -\gamma \left( l_\alpha \hat{\lambda}_\beta 
+                    - l_\beta \hat{\lambda}_\alpha  \right)                
+            \end{align*}
+            
+            
+            Para implementación Euler:
+            
+            \begin{equation}
+                \begin{aligned}
+                    \hat{\lambda}_\alpha(n) &= \hat{\lambda}_\alpha(n-1)
+                        + T_{sc}  f_{\lambda\alpha}(n-1)  \\
+                    \hat{\lambda}_\beta(n) &= \hat{\lambda}_\beta(n-1)
+                        + T_{sc}  f_{\lambda\beta}(n-1) \\
+                    \hat{i}_\beta(n) &= \hat{i}_\beta(n-1)
+                        + T_{sc}  f_{i\beta}(n-1) \\
+                    \hat{i}_\alpha(n) &= \hat{i}_\alpha(n-1) 
+                        + T_{sc}  f_{i\alpha}(n-1) \\
+                    \hat{\omega}(n) &= \hat{\omega}(n-1)
+                        + T_{sc}  f_{\omega}(n-1)  
+                \end{aligned}
+            \end{equation}
+
+        \subsubsection{Tiempo discreto en p.u.}
+            Se define:
+            \begin{align}
+                \lambda_0 &= L_M I_0 \\
+                I_0 &= \frac{\lambda_0}{L_M} 
+            \end{align}
+
+            Entonces las ecuaciones en p.u. pueden escribirse dividiendo por $\lambda_0$ y por $I_0$  según cada caso:
+            
+            \begin{equation}
+                \begin{aligned}
+                    f_{\lambda\alpha}^{pu} &=  \frac{L_M}{T_r} \frac{1}{L_M I_0} \hat{i}_\alpha 
+                        - \frac{1}{T_r} \hat{\lambda}_\alpha^{pu}  
+                        - \hat{\omega} \hat{\lambda}_\beta^{pu} 
+                        + \frac{1}{\lambda_0} k_1\nu_\alpha + \frac{1}{\lambda_0} k_2\nu_\beta  \\
+                    f_{\lambda\beta}^{pu} &=  \frac{L_M}{T_r} \frac{1}{L_M I_0} \hat{i}_\beta 
+                        - \frac{1}{T_r} \hat{\lambda}_\beta^{pu}  
+                        + \hat{\omega} \hat{\lambda}_\alpha^{pu} 
+                        - \frac{1}{\lambda_0} k_2\nu_\alpha + \frac{1}{\lambda_0} k_1\nu_\beta  \\
+                    f_{i\beta}^{pu} &=  -a  \hat{i}_\beta^{pu} 
+                        + \frac{L_M}{b T_r} \frac{L_M}{\lambda_0} \hat{\lambda}_\beta  
+                        - \frac{L_M}{b} \frac{L_M}{\lambda_0} \hat{\omega} \hat{\lambda}_\alpha 
+                        + \frac{L_r}{b} \frac{1}{I_0} v_\beta 
+                        - \frac{1}{I_0} \nu_\beta \\
+                    f_{i\alpha}^{pu} &=  -a  \hat{i}_\alpha^{pu} 
+                        + \frac{L_M}{b T_r} \frac{L_M}{\lambda_0} \hat{\lambda}_\alpha  
+                        + \frac{L_M}{b} \frac{L_M}{\lambda_0} \hat{\omega} \hat{\lambda}_\beta 
+                        + \frac{L_r}{b} \frac{1}{I_0} v_\alpha
+                        - \frac{1}{I_0} \nu_\alpha \\
+                    f_\omega^{pu} &=  -\gamma \frac{1}{\omega_0} \left( l_\alpha \hat{\lambda}_\beta 
+                        - l_\beta \hat{\lambda}_\alpha  \right)
+                \end{aligned}
+            \end{equation}
+            
+            Operando:
+            
+            \begin{equation}
+                \begin{aligned}
+                    f_{\lambda\alpha}^{pu} &=  \frac{1}{T_r}  \hat{i}_\alpha^{pu}
+                        - \frac{1}{T_r} \hat{\lambda}_\alpha^{pu}  
+                        - \hat{\omega} \hat{\lambda}_\beta^{pu} 
+                        + \frac{1}{\lambda_0} k_1\nu_\alpha + \frac{1}{\lambda_0} k_2\nu_\beta  \\
+                    f_{\lambda\beta}^{pu} &=  \frac{1}{T_r}  \hat{i}_\beta^{pu} 
+                        - \frac{1}{T_r} \hat{\lambda}_\beta^{pu}  
+                        + \hat{\omega} \hat{\lambda}_\alpha^{pu} 
+                        - \frac{1}{\lambda_0} k_2\nu_\alpha + \frac{1}{\lambda_0} k_1\nu_\beta  \\
+                    f_{i\beta}^{pu} &=  -a  \hat{i}_\beta^{pu} 
+                        + \frac{L_M^2}{b T_r}  \hat{\lambda}_\beta^{pu}  
+                        - \frac{L_M^2}{b}  \hat{\omega} \hat{\lambda}_\alpha^{pu}
+                        + \frac{L_r}{b I_0} v_\beta 
+                        - \frac{1}{I_0} \nu_\beta \\
+                    f_{i\alpha}^{pu} &=  -a  \hat{i}_\alpha^{pu} 
+                        + \frac{L_M^2}{b T_r}  \hat{\lambda}_\alpha^{pu}  
+                        +  \frac{L_M^2}{b} \hat{\omega} \hat{\lambda}_\beta^{pu}
+                        + \frac{L_r}{b I_0} v_\alpha
+                        - \frac{1}{I_0} \nu_\alpha \\
+                    f_\omega^{pu} &=  -\gamma \frac{1}{\omega_0} \left( l_\alpha \hat{\lambda}_\beta 
+                        - l_\beta \hat{\lambda}_\alpha  \right)
+                \end{aligned}
+            \end{equation}
+            
+            Pasando las variables restantes a PU:
+            \begin{equation}
+                \begin{aligned}
+                    f_{\lambda\alpha}^{pu} &=  \frac{1}{T_r}  \hat{i}_\alpha^{pu}
+                        - \frac{1}{T_r} \hat{\lambda}_\alpha^{pu}  
+                        - \omega_0 \hat{\omega}^{pu} \hat{\lambda}_\beta^{pu} 
+                        + \frac{1}{\lambda_0} k_1\nu_\alpha + \frac{1}{\lambda_0} k_2\nu_\beta  \\
+                    f_{\lambda\beta}^{pu} &=  \frac{1}{T_r}  \hat{i}_\beta^{pu} 
+                        - \frac{1}{T_r} \hat{\lambda}_\beta^{pu}  
+                        + \omega_0 \hat{\omega}^{pu} \hat{\lambda}_\alpha^{pu} 
+                        - \frac{1}{\lambda_0} k_2\nu_\alpha + \frac{1}{\lambda_0} k_1\nu_\beta  \\
+                    f_{i\beta}^{pu} &=  -a  \hat{i}_\beta^{pu} 
+                        + \frac{L_M^2}{b T_r}  \hat{\lambda}_\beta^{pu}  
+                        - \frac{L_M^2}{b} \omega_0   \hat{\omega}^{pu} \hat{\lambda}_\alpha^{pu}
+                        + \frac{L_r V_0}{b I_0} v_\beta^{pu} 
+                        - \frac{1}{I_0} \nu_\beta \\
+                    f_{i\alpha}^{pu} &=  -a  \hat{i}_\alpha^{pu} 
+                        + \frac{L_M^2}{b T_r}  \hat{\lambda}_\alpha^{pu}  
+                        +  \frac{L_M^2}{b} \omega_0  \hat{\omega}^{pu} \hat{\lambda}_\beta^{pu}
+                        + \frac{L_r V_0}{b I_0} v_\alpha^{pu}
+                        - \frac{1}{I_0} \nu_\alpha \\
+                    f_\omega^{pu} &=  -\gamma \frac{\lambda_0}{\omega_0} 
+                        \left( 
+                            l_\alpha \hat{\lambda}_\beta^{pu} 
+                            - l_\beta \hat{\lambda}_\alpha^{pu}  
+                        \right) \\
+                    \hat{\lambda}_\alpha^{pu}(n) &= \hat{\lambda}_\alpha^{pu}(n-1)
+                        + T_{sc}  f_{\lambda\alpha}^{pu}(n-1)  \\
+                    \hat{\lambda}_\beta(n) &= \hat{\lambda}_\beta^{pu}(n-1)
+                        + T_{sc}  f_{\lambda\beta}^{pu}(n-1) \\
+                    \hat{i}_\beta^{pu}(n) &= \hat{i}_\beta^{pu}(n-1)
+                        + T_{sc}  f_{i\beta}^{pu}(n-1) \\
+                    \hat{i}_\alpha^{pu}(n) &= \hat{i}_\alpha^{pu}(n-1) 
+                        + T_{sc}  f_{i\alpha}^{pu}(n-1) \\
+                    \hat{\omega}^{pu}(n) &= \hat{\omega}^{pu}(n-1)
+                        + T_{sc}  f_{\omega}^{pu}(n-1)  
+                \end{aligned}
+            \end{equation}
+
+        \subsubsection{Tiempo discreto con constantes}
+            Usando IQ(15), se deben tener en cuenta los desplazamientos en las multiplicaciones:
+            \begin{equation}
+                \begin{aligned}
+                    f_{\lambda\alpha}^{pu} &=  \frac{1}{T_r} 2^{15} \hat{i}_\alpha^{pu}
+                        - \frac{1}{T_r}2^{15} \hat{\lambda}_\alpha^{pu}  
+                        - \omega_0 2^{15} \hat{\omega}^{pu} \hat{\lambda}_\beta^{pu} 
+                        + \frac{1}{\lambda_0} k_1\nu_\alpha + \frac{1}{\lambda_0} k_2\nu_\beta  \\
+                    f_{\lambda\beta}^{pu} &=  \frac{1}{T_r} 2^{15} \hat{i}_\beta^{pu} 
+                        - \frac{1}{T_r}2^{15} \hat{\lambda}_\beta^{pu}  
+                        + \omega_0 2^{15} \hat{\omega}^{pu} \hat{\lambda}_\alpha^{pu} 
+                        - \frac{1}{\lambda_0} k_2\nu_\alpha + \frac{1}{\lambda_0} k_1\nu_\beta  \\
+                    f_{i\beta}^{pu} &=  -a 2^{15} \hat{i}_\beta^{pu} 
+                        + \frac{L_M^2}{b T_r}2^{15}  \hat{\lambda}_\beta^{pu}  
+                        - \frac{L_M^2}{b} \omega_0 2^{15}    \hat{\omega}^{pu} \hat{\lambda}_\alpha^{pu}
+                        + \frac{L_r V_0}{b I_0}2^{15} v_\beta^{pu} 
+                        - \frac{1}{I_0} \nu_\beta \\
+                    f_{i\alpha}^{pu} &=  -a 2^{15} \hat{i}_\alpha^{pu} 
+                        + \frac{L_M^2}{b T_r}2^{15}  \hat{\lambda}_\alpha^{pu}  
+                        +  \frac{L_M^2}{b} \omega_0 2^{15}   \hat{\omega}^{pu} \hat{\lambda}_\beta^{pu}
+                        + \frac{L_r V_0}{b I_0}2^{15} v_\alpha^{pu}
+                        - \frac{1}{I_0} \nu_\alpha \\
+                    f_\omega^{pu} &=  -\gamma \frac{\lambda_0}{\omega_0}2^{15}
+                        \left( 
+                            l_\alpha \hat{\lambda}_\beta^{pu} 
+                            - l_\beta \hat{\lambda}_\alpha^{pu}  
+                        \right) \\
+                    \hat{\lambda}_\alpha^{pu}(n) &= \hat{\lambda}_\alpha^{pu}(n-1)
+                        + T_{sc} 2^{15} f_{\lambda\alpha}^{pu}(n-1)  \\
+                    \hat{\lambda}_\beta(n) &= \hat{\lambda}_\beta^{pu}(n-1)
+                        + T_{sc} 2^{15} f_{\lambda\beta}^{pu}(n-1) \\
+                    \hat{i}_\beta^{pu}(n) &= \hat{i}_\beta^{pu}(n-1)
+                        + T_{sc} 2^{15} f_{i\beta}^{pu}(n-1) \\
+                    \hat{i}_\alpha^{pu}(n) &= \hat{i}_\alpha^{pu}(n-1) 
+                        + T_{sc} 2^{15} f_{i\alpha}^{pu}(n-1) \\
+                    \hat{\omega}^{pu}(n) &= \hat{\omega}^{pu}(n-1)
+                        + T_{sc} 2^{15} f_{\omega}^{pu}(n-1)  
+                \end{aligned}
+            \end{equation}
+
+    
+        Redefiniendo las constantes
+
+        \begin{equation}
+            \begin{aligned}
+                f_{\lambda\alpha}^{pu} =& \left( K_{InvTr}   \hat{i}_\alpha^{pu} \right)>>15 
+                    -  \left(K_{InvTr} \hat{\lambda}_\alpha^{pu}  \right)>>15 
+                    - \left( K_{\omega} \hat{\omega}^{pu} \hat{\lambda}_\beta^{pu} \right)>>15 \\
+                   & +  \left( K_{k1\nu} \nu_\alpha^{pu} \right)>>15 
+                    +  \left( K_{k2\nu}\nu_\beta^{pu} \right) >>15\\
+                f_{\lambda\beta}^{pu} =& \left(  K_{InvTr} \hat{i}_\beta^{pu} \right) >>15 
+                    -  \left( K_{InvTr} \hat{\lambda}_\beta^{pu}  \right) >>15 
+                    + \left( K_{\omega} \hat{\omega}^{pu} \hat{\lambda}_\alpha^{pu} \right) >>15 \\
+                   & - \left( K_{k2\nu} \nu_\alpha^{pu} \right) >>15 
+                    + \left( K_{k1\nu} \nu_\beta^{pu} \right) >>15 \\
+                f_{i\beta}^{pu} = &  
+                    \left(K_a \hat{i}_\beta^{pu}\right)  >>15   
+                    + \left( K_{L_M\_bT_r}  \hat{\lambda}_\beta^{pu}  \right)  >>15 
+                     - \left( K_{L_M\_b}  \hat{\omega}^{pu}  \hat{\lambda}_\alpha^{pu}\right)  >>15 \\
+                    & + \left( K_{L_r\_b}  v_\beta^{pu} \right) >>15 
+                     -    \nu_\beta^{pu}   \\
+                f_{i\alpha}^{pu} = & \left( K_a \hat{i}_\alpha^{pu}        \right) >>15  
+                   + \left( K_{L_M\_bT_r} \hat{\lambda}_\alpha^{pu}  \right)  >>15
+                   + \left(  K_{L_M\_b} \hat{\omega}^{pu} \hat{\lambda}_\beta^{pu}   \right)>>15  \\
+                   & + \left( K_{L_r\_b} v_\alpha^{pu} \right) >>15 
+                   -  \nu_\alpha^{pu}  \\
+                f_\omega^{pu} = & K_\gamma 
+                    \left( 
+                        l_\alpha \hat{\lambda}_\beta^{pu} 
+                        - l_\beta \hat{\lambda}_\alpha^{pu}  
+                    \right) 
+            \end{aligned}
+        \end{equation}
+        
+        Las constantes se definen como:
+        \begin{equation}
+            \begin{aligned}
+                K_{InvTr}       &= \frac{1}{T_r} 2^{15}           &
+                K_{k1\nu}       &= k_1 2^{15} \\
+                K_{k2\nu}       &= k_2 2^{15} &
+                K_{\omega}      &= \omega_0 2^{15}                 \\
+                K_a             &=    -a 2^{15}                    &
+                K_{L_M\_bT_r}   &= \frac{L_M^2}{b T_r}2^{15}      \\
+                 K_{L_M\_b}     &=  \frac{L_M^2}{b}2^{15}                   &
+                K_{L_r\_b}      &=  \frac{L_r V_0}{b I_0}2^{15}             \\
+                \nu_\beta^{pu}  &= \frac{1}{I_0} \nu_\beta                  &
+                \nu_\alpha^{pu} &= \frac{1}{I_0} \nu_\alpha                 \\
+                 K_\gamma       &= -\gamma \frac{\lambda_0}{\omega_0}2^{15} &
+                K_{T_s}         &= T_{sc} 2^{15}  
+            \end{aligned}
+        \end{equation}
+
+        La ecuación en diferencias queda como: 
+        \begin{equation}
+            \begin{aligned}
+                \hat{\lambda}_\alpha^{pu}(n) &= \hat{\lambda}_\alpha^{pu}\left(n-1\right)
+                    + \left( K_{T_s}  f_{\lambda\alpha}^{pu}\left(n-1\right) \right) >> 15 \\
+                \hat{\lambda}_\beta(n) &= \hat{\lambda}_\beta^{pu}\left(n-1\right)
+                    + \left(  K_{T_s} f_{\lambda\beta}^{pu} \left(n-1\right) \right) >> 15 \\
+                \hat{i}_\beta^{pu}(n) &= \hat{i}_\beta^{pu} \left(n-1\right)
+                    +  \left(  K_{T_s}  f_{i\beta}^{pu} \left(n-1\right) \right) >> 15 \\
+                \hat{i}_\alpha^{pu}(n) &= \hat{i}_\alpha^{pu} \left(n-1\right) 
+                    +  \left( K_{T_s} f_{i\alpha}^{pu} \left(n-1\right) \right) >> 15 \\
+                \hat{\omega}^{pu}(n) &= \hat{\omega}^{pu} \left(n-1\right)
+                    +  \left(  K_{T_s}  f_{\omega}^{pu}\left(n-1\right)  \right) >> 15
+            \end{aligned}
+        \end{equation}
+
+
+        Considerando que puede ocurrir que sea necesario hacer una pre-división a las constantes, en caso de que se pasen de rango, se definen constantes para los desplazamientos, y se redefinen el resto de las constantes:
+ 
+         \begin{equation}
+            \begin{aligned}
+                f_{\lambda\alpha}^{pu} =& \left( K_{InvTr}   \hat{i}_\alpha^{pu} \right) >> D_{InvTr} 
+                    -  \left(K_{InvTr} \hat{\lambda}_\alpha^{pu}  \right) >> (15-P_{InvTr}) \\
+                    &- \left( K_{\omega} \hat{\omega}^{pu} \hat{\lambda}_\beta^{pu} \right)>> D_{\omega} 
+                    +  \left( K_{k1\nu} \nu_\alpha^{pu} \right)>> (15-P_{k1\nu}) \\
+                    & +  \left( K_{k2\nu}\nu_\beta^{pu} \right) >> (15-P_{k2\nu})\\
+                f_{\lambda\beta}^{pu} =& \left( K_{InvTr} \hat{i}_\beta^{pu} \right) >> (15-_{InvTr})
+                    -  \left( K_{InvTr} \hat{\lambda}_\beta^{pu}  \right) >> (15-P_{InvTr}) \\
+                    & + \left( K_{\omega} \hat{\omega}^{pu} \hat{\lambda}_\alpha^{pu} \right) >> (15-_{\omega})
+                    - \left( K_{k2\nu} \nu_\alpha^{pu} \right) >> (15-P_{k2\nu}) \\
+                    & + \left( K_{k1\nu} \nu_\beta^{pu} \right) >> (15-P_{k1\nu}) \\
+                f_{i\beta}^{pu} = &  
+                    \left(K_a \hat{i}_\beta^{pu}\right) >> (15-P_a)
+                    + \left( K_{L_M\_bT_r}  \hat{\lambda}_\beta^{pu}  \right)  >> (15-P_{L_M\_bT_r}) \\
+                    & - \left( K_{L_M\_b}  \hat{\omega}^{pu}  \hat{\lambda}_\alpha^{pu}\right)  >> (15-P_{L_M\_b})
+                    + \left( K_{L_r\_b}  v_\beta^{pu} \right) >> (15-P_{L_r\_b})
+                     -    \nu_\beta^{pu}   \\
+                f_{i\alpha}^{pu} = & \left( K_a \hat{i}_\alpha^{pu}        \right) >> (15-P_a)
+                   + \left( K_{L_M\_bT_r} \hat{\lambda}_\alpha^{pu}  \right)  >> (15-P_{L_M\_bT_r}) \\
+                   & + \left(  K_{L_M\_b} \hat{\omega}^{pu} \hat{\lambda}_\beta^{pu}   \right)>> (15-P_{L_M\_b})
+                   + \left( K_{L_r\_b} v_\alpha^{pu} \right) >> (15-P_{L_r\_b} )
+                   -  \nu_\alpha^{pu}  \\
+                f_\omega^{pu} = & K_\gamma 
+                    \left( 
+                        l_\alpha \hat{\lambda}_\beta^{pu} 
+                        - l_\beta \hat{\lambda}_\alpha^{pu}  
+                    \right) 
+            \end{aligned}
+        \end{equation}
+
+        \begin{equation}
+            \begin{aligned}
+                \hat{\lambda}_\alpha^{pu}(n) &= \hat{\lambda}_\alpha^{pu}\left(n-1\right)
+                    + \left( K_{T_s}  f_{\lambda\alpha}^{pu}\left(n-1\right) \right) >> \left(15-P_{T_s}\right) \\
+                \hat{\lambda}_\beta(n) &= \hat{\lambda}_\beta^{pu}\left(n-1\right)
+                    + \left(  K_{T_s} f_{\lambda\beta}^{pu} \left(n-1\right) \right) >> \left(15-P_{T_s}\right) \\
+                \hat{i}_\beta^{pu}(n) &= \hat{i}_\beta^{pu} \left(n-1\right)
+                    +  \left(  K_{T_s}  f_{i\beta}^{pu} \left(n-1\right) \right) >> \left(15-P_{T_s}\right) \\
+                \hat{i}_\alpha^{pu}(n) &= \hat{i}_\alpha^{pu} \left(n-1\right) 
+                    +  \left( K_{T_s} f_{i\alpha}^{pu} \left(n-1\right) \right) >> \left(15-P_{T_s}\right) \\
+                \hat{\omega}^{pu}(n) &= \hat{\omega}^{pu} \left(n-1\right)
+                    +  \left(  K_{T_s}  f_{\omega}^{pu}\left(n-1\right)  \right) >> \left(15-P_{T_s}\right)
+            \end{aligned}
+         \end{equation}
+
+        Las constantes se redefinen como:
+        \begin{equation}
+            \begin{aligned}
+                K_{InvTr}       &= \frac{1}{T_r}  2^{15} \frac{1}{2^{P_{InvTr}}}    &
+                K_{k1\nu}       &= k_1 2^{15} \frac{1}{2^{P_{k1\nu} }}              \\
+                K_{k2\nu}       &= k_2 2^{15} \frac{1}{2^{P_{k2\nu}  }}             &
+                K_{\omega}      &= \omega_0 2^{15}   \frac{1}{2^{P_{\omega}  }}      \\
+                K_a             &=    -a 2^{15}     \frac{1}{2^{P_a  }}             &
+                K_{L_M\_bT_r}   &= \frac{L_M^2}{b T_r}2^{15} \frac{1}{2^{P_{L_M\_bT_r}  
+                    }}  \\
+                 K_{L_M\_b}     &=  \frac{L_M^2}{b}2^{15}  \frac{1}{2^{P_{L_M\_b}  }} &
+                K_{L_r\_b}      &=  \frac{L_r V_0}{b I_0}2^{15}  \frac{1}{2^{P_{L_r\_b} 
+                    }}  \\
+                \nu_\beta^{pu}  &= \frac{1}{I_0} \nu_\beta                          &
+                \nu_\alpha^{pu} &= \frac{1}{I_0} \nu_\alpha                         \\
+                 K_\gamma       &= -\gamma \frac{\lambda_0}{\omega_0}2^{15}
+                     \frac{1}{2^{P_\gamma  }}                                       &
+                K_{T_s}         &= T_{sc} 2^{15}   \frac{1}{2^{P_{T_s} }}
+            \end{aligned}
+        \end{equation}
+        
+        Donde las constantes $P$ se utilizan para ajustar los valores de pre-división.
+        
+
+
+        \subsection{Reporte: Cuantifiación en MATLAB, segunda etapa}
+            \begin{description}
+            	\item[Fecha]  21/06/2019 
+            \end{description}
+        
+            Se observa que al realizar la cuantificación con el método propuesto anteriormente, el valor de la constante $ K_{T_s} $ queda con muy poca resolución (1 o 2 bits). Se analiza incorporar la constante $T_s$ en las funciones $f_xxx$ para ver si se mejora la resolución de las constantes.
+
+
+            \subsubsection{Tiempo discreto con constantes, redefinición}
+                
+
 		
 	%----------------------------------------------------------------------------------------
 	%	BIBLIOGRAPHY

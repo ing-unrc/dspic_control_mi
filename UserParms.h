@@ -336,14 +336,20 @@ the normalized value is further divided by 2 to fit the 32768 limit */
      
     
 //parametros PI estimador
-
     
     #define     EST_PTERM           Q15(0.005)     //Q15(0.05)
     #define     EST_ITERM           Q15(0.0004) //Q15(0.0004)
     #define     EST_CTERM           Q15(0.999) 
     #define     EST_OUTMAX          0x7FFF
     #define     EST_OUTMIN          -0x7FFF
+
+//parametros PI freno
     
+    #define     FRENO_PTERM           Q15(0.005)     //Q15(0.05)
+    #define     FRENO_ITERM           Q15(0.0004) //Q15(0.0004)
+    #define     FRENO_CTERM           Q15(0.999) 
+    #define     FRENO_OUTMAX          0x0000
+    #define     FRENO_OUTMIN          -0x0000    
     
     
 //*** Velocity Control Loop Coefficients *****
